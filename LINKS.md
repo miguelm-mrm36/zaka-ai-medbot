@@ -1,0 +1,3 @@
+- Colab Notebook: https://colab.research.google.com/drive/1ILGlkn7LpZzYFkzDLEe7CDvMgTN3g-eu
+- Repo: https://github.com/miguelm-mrm36/zaka-ai-medbot
+- Render: https://zaka-ai-medbot.onrender.com

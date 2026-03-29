@@ -42,7 +42,9 @@ def _load_model_once() -> None:
             return
         try:
             _set_torch_runtime()
-            _tokenizer = AutoTokenizer.from_pretrained(str(ADAPTER_DIR), use_fast=True, legacy=False)
+            _tokenizer = AutoTokenizer.from_pretrained(
+                str(ADAPTER_DIR), use_fast=True, legacy=False
+            )
             if _tokenizer.pad_token is None:
                 _tokenizer.pad_token = _tokenizer.eos_token
 
@@ -58,9 +60,6 @@ def _load_model_once() -> None:
             _model = peft_model
         except Exception as exc:  # pragma: no cover - startup path
             _model_error = f"{type(exc).__name__}: {exc}"
-
-
-_load_model_once()
 
 
 SYSTEM_NOTE = (
@@ -82,7 +81,6 @@ def build_prompt(user_question: str) -> str:
     )
 
 
-
 def clean_response(full_text: str) -> str:
     text = full_text
     if "### Response:" in text:
@@ -90,7 +88,6 @@ def clean_response(full_text: str) -> str:
     text = text.strip()
     text = re.split(r"\n###\s", text)[0].strip()
     return text or "Sorry, I could not generate a useful response."
-
 
 
 def generate_medbot_response(question: str) -> str:
@@ -125,7 +122,7 @@ def index():
     return render_template("index.html")
 
 
-@app.route("/health", methods=["GET"])
+@app.route("/healthz", methods=["GET"])
 def health():
     return jsonify(
         {
@@ -139,13 +136,18 @@ def health():
 
 @app.route("/chat", methods=["POST"])
 def chat():
+    _load_model_once()
+
     data = request.get_json(silent=True) or {}
     message = (data.get("message") or "").strip()
 
     if not message:
         return jsonify({"error": "Please enter a message."}), 400
 
+    print("Request:", message)
     reply = generate_medbot_response(message)
+    print("Response:", reply)
+
     return jsonify({"reply": reply})
 
 
