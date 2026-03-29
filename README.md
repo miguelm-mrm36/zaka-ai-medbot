@@ -76,3 +76,4 @@ This repository includes a `Dockerfile` and a `render.yaml` file to support Dock
 
 ## Preview
 
+![MedBot Demo](static/medbot-demo-4x-speed.gif)
