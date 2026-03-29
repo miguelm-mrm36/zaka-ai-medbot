@@ -35,12 +35,16 @@ def _set_torch_runtime() -> None:
 def _load_model_once() -> None:
     global _model, _tokenizer, _model_error
     if _model is not None or _model_error is not None:
+        print("Model already loaded")
         return
 
     with _model_lock:
         if _model is not None or _model_error is not None:
+            print("Model already loaded")
             return
         try:
+            print("Loading model...")
+
             _set_torch_runtime()
             _tokenizer = AutoTokenizer.from_pretrained(
                 str(ADAPTER_DIR), use_fast=True, legacy=False
@@ -58,7 +62,11 @@ def _load_model_once() -> None:
             peft_model.eval()
 
             _model = peft_model
-        except Exception as exc:  # pragma: no cover - startup path
+
+            print("Model loaded")
+        except Exception as exc:
+            print(f"Failed to load model: {exc}")
+
             _model_error = f"{type(exc).__name__}: {exc}"
 
 
@@ -119,11 +127,15 @@ def generate_medbot_response(question: str) -> str:
 
 @app.route("/", methods=["GET"])
 def index():
+    print("Request for index page")
+
     return render_template("index.html")
 
 
 @app.route("/healthz", methods=["GET"])
-def health():
+def healthz():
+    print("Request for health check")
+
     return jsonify(
         {
             "status": "ok" if _model_error is None else "error",
@@ -136,6 +148,8 @@ def health():
 
 @app.route("/chat", methods=["POST"])
 def chat():
+    print("Request for chat")
+
     _load_model_once()
 
     data = request.get_json(silent=True) or {}
