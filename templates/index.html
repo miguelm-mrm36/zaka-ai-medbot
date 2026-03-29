@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MedBot</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}" />
+  <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <main class="page-shell">
+    <section class="chat-card">
+      <header class="chat-header">
+        <div class="brand-block">
+          <img src="{{ url_for('static', filename='icon.png') }}" alt="MedBot icon" class="brand-icon" />
+          <div>
+            <p class="eyebrow">ZAKA Final Project</p>
+            <h1>MedBot</h1>
+            <p class="subtext">A chat-style medical Q&amp;A demo powered by your fine-tuned MedBot adapter.</p>
+          </div>
+        </div>
+      </header>
+
+      <div class="disclaimer">
+        MedBot is for general health education only. It does not diagnose, prescribe, or replace professional medical advice.
+      </div>
+
+      <section id="chat-box" class="chat-box" aria-live="polite">
+        <article class="message bot">
+          <div class="bubble">
+            Hi — I’m MedBot. Ask me a general medical question and I’ll answer as clearly and briefly as I can.
+          </div>
+        </article>
+      </section>
+
+      <form id="chat-form" class="chat-form">
+        <label for="message" class="sr-only">Your message</label>
+        <textarea id="message" name="message" rows="1" placeholder="Type your medical question here..." required></textarea>
+        <button type="submit" id="send-btn">Send</button>
+      </form>
+    </section>
+  </main>
+
+  <template id="loading-template">
+    <article class="message bot loading-message">
+      <div class="bubble loading-bubble">
+        <img src="{{ url_for('static', filename='icon.png') }}" alt="" class="loading-icon" />
+        <span>MedBot is thinking...</span>
+      </div>
+    </article>
+  </template>
+
+  <script>
+    const chatForm = document.getElementById("chat-form");
+    const chatBox = document.getElementById("chat-box");
+    const messageInput = document.getElementById("message");
+    const sendBtn = document.getElementById("send-btn");
+    const loadingTemplate = document.getElementById("loading-template");
+
+    function addMessage(text, sender) {
+      const wrapper = document.createElement("article");
+      wrapper.className = `message ${sender}`;
+
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      bubble.textContent = text;
+
+      wrapper.appendChild(bubble);
+      chatBox.appendChild(wrapper);
+      chatBox.scrollTop = chatBox.scrollHeight;
+      return wrapper;
+    }
+
+    function addLoadingMessage() {
+      const node = loadingTemplate.content.firstElementChild.cloneNode(true);
+      chatBox.appendChild(node);
+      chatBox.scrollTop = chatBox.scrollHeight;
+      return node;
+    }
+
+    function autoResize(el) {
+      el.style.height = "auto";
+      el.style.height = `${Math.min(el.scrollHeight, 180)}px`;
+    }
+
+    messageInput.addEventListener("input", () => autoResize(messageInput));
+
+    messageInput.addEventListener("keydown", (event) => {
+      const isMac = navigator.platform.toUpperCase().includes("MAC");
+      const submitShortcut = event.key === "Enter" && !event.shiftKey && ((isMac && event.metaKey) || (!isMac && event.ctrlKey));
+
+      if (submitShortcut) {
+        event.preventDefault();
+        chatForm.requestSubmit();
+      }
+    });
+
+    chatForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const message = messageInput.value.trim();
+      if (!message) return;
+
+      addMessage(message, "user");
+      messageInput.value = "";
+      autoResize(messageInput);
+      sendBtn.disabled = true;
+      sendBtn.textContent = "Sending...";
+
+      const loadingNode = addLoadingMessage();
+
+      try {
+        const response = await fetch("/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message })
+        });
+
+        const data = await response.json();
+        loadingNode.remove();
+
+        if (!response.ok) {
+          addMessage(data.error || "Something went wrong.", "bot");
+        } else {
+          addMessage(data.reply || "No response returned.", "bot");
+        }
+      } catch (error) {
+        loadingNode.remove();
+        addMessage("Sorry, I could not reach the server right now.", "bot");
+      } finally {
+        sendBtn.disabled = false;
+        sendBtn.textContent = "Send";
+        messageInput.focus();
+      }
+    });
+  </script>
+</body>
+</html>
