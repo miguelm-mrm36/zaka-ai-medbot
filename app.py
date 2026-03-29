@@ -1,6 +1,7 @@
 import os
 import re
 import threading
+import time
 from pathlib import Path
 
 import torch
@@ -149,20 +150,30 @@ def healthz():
 @app.route("/chat", methods=["POST"])
 def chat():
     print("Request for chat")
+    start_time = time.perf_counter()
 
     _load_model_once()
 
     data = request.get_json(silent=True) or {}
     message = (data.get("message") or "").strip()
 
+    print("Request:", message)
+
     if not message:
         return jsonify({"error": "Please enter a message."}), 400
 
-    print("Request:", message)
     reply = generate_medbot_response(message)
-    print("Response:", reply)
+    elapsed_seconds = time.perf_counter() - start_time
+    elapsed_display = f"{elapsed_seconds:.2f}s"
 
-    return jsonify({"reply": reply})
+    print(f"Response ({elapsed_display}):", reply)
+
+    return jsonify(
+        {
+            "reply": reply,
+            "time_spent_seconds_display": elapsed_display,
+        }
+    )
 
 
 if __name__ == "__main__":

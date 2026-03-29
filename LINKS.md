@@ -1,3 +1,4 @@
 - Colab Notebook: https://colab.research.google.com/drive/1ILGlkn7LpZzYFkzDLEe7CDvMgTN3g-eu
 - Repo: https://github.com/miguelm-mrm36/zaka-ai-medbot
 - Render: https://zaka-ai-medbot.onrender.com
+- Google Drive: https://drive.google.com/drive/folders/1h0Xyd22NifQ1W479E1nXgM3NYFM8syBK

@@ -102,10 +102,12 @@ h1 {
 
 .message {
   display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
-.message.bot { justify-content: flex-start; }
-.message.user { justify-content: flex-end; }
+.message.bot { align-items: flex-start; }
+.message.user { align-items: flex-end; }
 
 .bubble {
   max-width: min(80%, 700px);
@@ -126,6 +128,14 @@ h1 {
   background: var(--user);
   color: #ffffff;
   border-bottom-right-radius: 6px;
+}
+
+.message-meta {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--muted);
+  text-align: end;
 }
 
 .loading-bubble {

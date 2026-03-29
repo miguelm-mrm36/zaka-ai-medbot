@@ -20,7 +20,7 @@
           <div>
             <p class="eyebrow">ZAKA AI - Miguel Merheb</p>
             <h1>MedBot</h1>
-            <p class="subtext">A chat-style medical Q&amp;A demo powered by your fine-tuned MedBot adapter.</p>
+            <p class="subtext">A chat-style medical bot.</p>
           </div>
         </div>
       </header>
@@ -61,7 +61,7 @@
     const sendBtn = document.getElementById("send-btn");
     const loadingTemplate = document.getElementById("loading-template");
 
-    function addMessage(text, sender) {
+    function addMessage(text, sender, metaText = "") {
       const wrapper = document.createElement("article");
       wrapper.className = `message ${sender}`;
 
@@ -70,6 +70,14 @@
       bubble.textContent = text;
 
       wrapper.appendChild(bubble);
+
+      if (metaText) {
+        const meta = document.createElement("div");
+        meta.className = "message-meta";
+        meta.textContent = metaText;
+        bubble.appendChild(meta);
+      }
+
       chatBox.appendChild(wrapper);
       chatBox.scrollTop = chatBox.scrollHeight;
       return wrapper;
@@ -125,7 +133,10 @@
         if (!response.ok) {
           addMessage(data.error || "Something went wrong.", "bot");
         } else {
-          addMessage(data.reply || "No response returned.", "bot");
+          const timeSpent = data.time_spent_seconds_display
+            ? `Time spent: ${data.time_spent_seconds_display}`
+            : "";
+          addMessage(data.reply || "No response returned.", "bot", timeSpent);
         }
       } catch (error) {
         loadingNode.remove();
